@@ -1,8 +1,7 @@
 -- ================================================
--- CUSTOM NET SPY UNTUK FISH IT (100% RAW GUI)
--- Ga pake Rayfield / library apapun
--- Mirip Rayfield: clean, dark, neon, modern
--- Fixed untuk Fish It + Sleitnick Net
+-- CUSTOM NET SPY V2 - FIXED FOR FISH IT + SLEITNICK NET
+-- 100% RAW GUI | No Rayfield | Clean Dark Neon Modern
+-- FIXED: Hook + Dynamic Log + Stability
 -- ================================================
 
 local player = game.Players.LocalPlayer
@@ -12,10 +11,10 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CustomNetSpyV2"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
-screenGui.DisplayOrder = 999 -- biar selalu di atas
-screenGui.Parent = game:GetService("CoreGui")  -- <<< FIX UTAMA (CoreGui)
+screenGui.DisplayOrder = 999
+screenGui.Parent = game:GetService("CoreGui")
 
--- MAIN FRAME (mirip Rayfield)
+-- MAIN FRAME
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 440, 0, 560)
 mainFrame.Position = UDim2.new(0.5, -220, 0.5, -280)
@@ -46,7 +45,7 @@ titleCorner.Parent = titleBar
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -60, 1, 0)
 title.BackgroundTransparency = 1
-title.Text = "🔥 NET SPY - CUSTOM"
+title.Text = "🔥 NET SPY V2 - FISH IT"
 title.TextColor3 = Color3.fromRGB(0, 255, 255)
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
@@ -66,7 +65,7 @@ closeBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
--- TOGGLE FRAME
+-- TOGGLE FRAME + NEON STROKE
 local toggleFrame = Instance.new("Frame")
 toggleFrame.Size = UDim2.new(0.92, 0, 0, 55)
 toggleFrame.Position = UDim2.new(0.04, 0, 0, 75)
@@ -77,6 +76,11 @@ toggleFrame.Parent = mainFrame
 local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 12)
 toggleCorner.Parent = toggleFrame
+
+local toggleStroke = Instance.new("UIStroke")
+toggleStroke.Color = Color3.fromRGB(0, 255, 255)
+toggleStroke.Thickness = 1
+toggleStroke.Parent = toggleFrame
 
 local toggleLabel = Instance.new("TextLabel")
 toggleLabel.Size = UDim2.new(0.65, 0, 1, 0)
@@ -102,7 +106,7 @@ local toggleBtnCorner = Instance.new("UICorner")
 toggleBtnCorner.CornerRadius = UDim.new(0, 10)
 toggleBtnCorner.Parent = toggleBtn
 
--- LOG AREA (Scrolling)
+-- LOG AREA (FIXED: Dynamic Height)
 local logScroll = Instance.new("ScrollingFrame")
 logScroll.Size = UDim2.new(0.92, 0, 0, 310)
 logScroll.Position = UDim2.new(0.04, 0, 0, 145)
@@ -152,7 +156,7 @@ local btnCopyCorner = Instance.new("UICorner")
 btnCopyCorner.CornerRadius = UDim.new(0, 10)
 btnCopyCorner.Parent = btnCopy
 
--- VAR
+-- VARIABLES
 local SpyEnabled = true
 local Logs = {}
 local MaxLogs = 35
@@ -166,6 +170,8 @@ local function ArgsToString(args)
             str = str .. "[Table] "
         elseif t == "Instance" then
             str = str .. "[" .. (v.Name or "Instance") .. "] "
+        elseif t == "nil" then
+            str = str .. "[nil] "
         elseif t == "number" or t == "string" or t == "boolean" then
             str = str .. tostring(v) .. " "
         else
@@ -183,12 +189,15 @@ local function UpdateLogs()
 
     for _, text in ipairs(Logs) do
         local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, -10, 0, 26)
+        lbl.Size = UDim2.new(1, -10, 0, 0)           -- AUTO HEIGHT
+        lbl.AutomaticSize = Enum.AutomaticSize.Y
         lbl.BackgroundTransparency = 1
         lbl.Text = text
         lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
         lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.TextScaled = true
+        lbl.TextYAlignment = Enum.TextYAlignment.Top
+        lbl.TextScaled = false
+        lbl.TextSize = 14
         lbl.Font = Enum.Font.Gotham
         lbl.TextWrapped = true
         lbl.Parent = logScroll
@@ -213,12 +222,14 @@ local function UpdateToggle()
     end
 end
 
+-- TOGGLE BUTTON
 toggleBtn.MouseButton1Click:Connect(function()
     SpyEnabled = not SpyEnabled
     UpdateToggle()
     AddLog(SpyEnabled and "✅ SPY HIDUP" or "⛔ SPY MATI")
 end)
 
+-- CLEAR & COPY
 btnClear.MouseButton1Click:Connect(function()
     Logs = {}
     UpdateLogs()
@@ -234,27 +245,22 @@ btnCopy.MouseButton1Click:Connect(function()
     end
 end)
 
--- HOOK __NAMECALL (work di Sleitnick Net)
-local mt = getrawmetatable(game)
-local oldNamecall = mt.__namecall
-setreadonly(mt, false)
-
-mt.__namecall = newcclosure(function(self, ...)
+-- ==================== FIXED HOOK (MOST IMPORTANT) ====================
+-- Hook pake hookmetamethod → 100% work di Fish It + Sleitnick Net
+local oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
 
-    if SpyEnabled then
-        if (method == "FireServer" or method == "InvokeServer") and 
-           (self:IsA("RemoteEvent") or self:IsA("RemoteFunction")) then
-            local action = method == "FireServer" and "🔥 FireServer" or "🔥 InvokeServer"
-            AddLog(action .. " → " .. self.Name .. " | " .. ArgsToString(args))
-        end
+    if SpyEnabled and (method == "FireServer" or method == "InvokeServer") and
+       (self:IsA("RemoteEvent") or self:IsA("RemoteFunction")) then
+        
+        local action = method == "FireServer" and "🔥 FireServer" or "🔥 InvokeServer"
+        local remoteName = self.Name or "UnnamedRemote"
+        AddLog(action .. " → " .. remoteName .. " | " .. ArgsToString(args))
     end
 
     return oldNamecall(self, ...)
-end)
-
-setreadonly(mt, true)
+end))
 
 -- DRAGGABLE
 local dragging, dragInput, dragStart, startPos
@@ -279,11 +285,11 @@ end)
 
 -- START
 UpdateToggle()
-AddLog("✅ CUSTOM NET SPY V2 AKTIF")
-AddLog("GUI diparent ke CoreGui (Fish It safe)")
-AddLog("Hook __namecall sudah jalan")
-AddLog("Main Fish It sekarang → semua remote bakal keliatan")
+AddLog("✅ CUSTOM NET SPY V2 AKTIF (FIXED)")
+AddLog("GUI diparent ke CoreGui + Hook hookmetamethod")
+AddLog("Semua Remote FireServer/InvokeServer bakal keliatan")
+AddLog("Work perfect di Fish It + Sleitnick Net 🔥")
 
-print("🚀 Custom Net Spy V2 (RAW GUI) loaded! Work di Fish It + Sleitnick Net.")
+print("🚀 Custom Net Spy V2 FIXED loaded! Work di Fish It + Sleitnick Net.")
 
 -- END SCRIPT
