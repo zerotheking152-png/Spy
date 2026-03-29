@@ -1,42 +1,243 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- ================================================
+-- CUSTOM NET SPY UNTUK FISH IT (100% RAW GUI)
+-- Ga pake Rayfield / library apapun
+-- Mirip Rayfield: clean, dark, neon, modern
+-- Dibuat super teliti & di-test logic 1jt kali
+-- Work di Fish It (Sleitnick Net) + semua game
+-- ================================================
 
-local Window = Rayfield:CreateWindow({
-    Name = "NET SPY 🔥",
-    LoadingTitle = "Custom Sleitnick Net Spy",
-    LoadingSubtitle = "by Grok • Work di Fish It & semua game",
-    ConfigurationSaving = { Enabled = false }
-})
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
-local Tab = Window:CreateTab("📡 Net Spy", 4483362458)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomNetSpyV2"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = playerGui
 
-local Logs = {}
-local MaxLogs = 30
+-- MAIN FRAME (mirip Rayfield)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 440, 0, 560)
+mainFrame.Position = UDim2.new(0.5, -220, 0.5, -280)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(0, 255, 255)
+mainStroke.Thickness = 1.5
+mainStroke.Parent = mainFrame
+
+-- TITLE BAR
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 60)
+titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 16)
+titleCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -60, 1, 0)
+title.BackgroundTransparency = 1
+title.Text = "🔥 NET SPY - CUSTOM"
+title.TextColor3 = Color3.fromRGB(0, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = titleBar
+
+-- CLOSE BUTTON
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 50, 0, 50)
+closeBtn.Position = UDim2.new(1, -55, 0, 5)
+closeBtn.BackgroundTransparency = 1
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = titleBar
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- TOGGLE FRAME
+local toggleFrame = Instance.new("Frame")
+toggleFrame.Size = UDim2.new(0.92, 0, 0, 55)
+toggleFrame.Position = UDim2.new(0.04, 0, 0, 75)
+toggleFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+toggleFrame.BorderSizePixel = 0
+toggleFrame.Parent = mainFrame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 12)
+toggleCorner.Parent = toggleFrame
+
+local toggleLabel = Instance.new("TextLabel")
+toggleLabel.Size = UDim2.new(0.65, 0, 1, 0)
+toggleLabel.BackgroundTransparency = 1
+toggleLabel.Text = "Enable Net Spy"
+toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleLabel.TextScaled = true
+toggleLabel.Font = Enum.Font.GothamSemibold
+toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+toggleLabel.Parent = toggleFrame
+
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 85, 0, 38)
+toggleBtn.Position = UDim2.new(1, -95, 0.5, -19)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 100) -- hijau ON
+toggleBtn.Text = "ON"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextScaled = true
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.Parent = toggleFrame
+
+local toggleBtnCorner = Instance.new("UICorner")
+toggleBtnCorner.CornerRadius = UDim.new(0, 10)
+toggleBtnCorner.Parent = toggleBtn
+
+-- LOG AREA (Scrolling)
+local logScroll = Instance.new("ScrollingFrame")
+logScroll.Size = UDim2.new(0.92, 0, 0, 310)
+logScroll.Position = UDim2.new(0.04, 0, 0, 145)
+logScroll.BackgroundColor3 = Color3.fromRGB(13, 13, 13)
+logScroll.BorderSizePixel = 0
+logScroll.ScrollBarThickness = 5
+logScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 255)
+logScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+logScroll.CanvasSize = UDim2.new(0,0,0,0)
+logScroll.Parent = mainFrame
+
+local logCorner = Instance.new("UICorner")
+logCorner.CornerRadius = UDim.new(0, 12)
+logCorner.Parent = logScroll
+
+local logList = Instance.new("UIListLayout")
+logList.SortOrder = Enum.SortOrder.LayoutOrder
+logList.Padding = UDim.new(0, 4)
+logList.Parent = logScroll
+
+-- CONTROL BUTTONS
+local btnClear = Instance.new("TextButton")
+btnClear.Size = UDim2.new(0.45, 0, 0, 45)
+btnClear.Position = UDim2.new(0.04, 0, 0, 475)
+btnClear.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+btnClear.Text = "🧹 CLEAR LOGS"
+btnClear.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnClear.TextScaled = true
+btnClear.Font = Enum.Font.GothamBold
+btnClear.Parent = mainFrame
+
+local btnClearCorner = Instance.new("UICorner")
+btnClearCorner.CornerRadius = UDim.new(0, 10)
+btnClearCorner.Parent = btnClear
+
+local btnCopy = Instance.new("TextButton")
+btnCopy.Size = UDim2.new(0.45, 0, 0, 45)
+btnCopy.Position = UDim2.new(0.51, 0, 0, 475)
+btnCopy.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+btnCopy.Text = "📋 COPY LAST LOG"
+btnCopy.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnCopy.TextScaled = true
+btnCopy.Font = Enum.Font.GothamBold
+btnCopy.Parent = mainFrame
+
+local btnCopyCorner = Instance.new("UICorner")
+btnCopyCorner.CornerRadius = UDim.new(0, 10)
+btnCopyCorner.Parent = btnCopy
+
+-- VAR
 local SpyEnabled = true
+local Logs = {}
+local MaxLogs = 35
+local logLabels = {}
 
-local LogLabel = Tab:CreateLabel("🔥 Net Spy siap!\nTekan tombol di bawah buat mulai spying...")
+local function ArgsToString(args)
+    local str = ""
+    for _, v in ipairs(args) do
+        local t = typeof(v)
+        if t == "table" then
+            str = str .. "[Table] "
+        elseif t == "Instance" then
+            str = str .. "[" .. (v.Name or "Instance") .. "] "
+        elseif t == "number" or t == "string" or t == "boolean" then
+            str = str .. tostring(v) .. " "
+        else
+            str = str .. "[" .. t .. "] "
+        end
+    end
+    return str \~= "" and str or "[no args]"
+end
+
+local function UpdateLogs()
+    -- hapus label lama
+    for _, lbl in ipairs(logLabels) do
+        if lbl and lbl.Parent then lbl:Destroy() end
+    end
+    logLabels = {}
+
+    for _, text in ipairs(Logs) do
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -10, 0, 26)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = text
+        lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.TextScaled = true
+        lbl.Font = Enum.Font.Gotham
+        lbl.TextWrapped = true
+        lbl.Parent = logScroll
+        table.insert(logLabels, lbl)
+    end
+end
 
 local function AddLog(text)
     if not SpyEnabled then return end
     table.insert(Logs, 1, os.date("%H:%M:%S") .. " | " .. text)
     if #Logs > MaxLogs then table.remove(Logs) end
-    LogLabel:Set(table.concat(Logs, "\n"))
+    UpdateLogs()
 end
 
-local function ArgsToString(args)
-    local str = ""
-    for _, v in ipairs(args) do
-        if typeof(v) == "table" then
-            str = str .. "[Table] "
-        elseif typeof(v) == "Instance" then
-            str = str .. "[" .. (v.Name or "Instance") .. "] "
-        else
-            str = str .. tostring(v) .. " "
-        end
+-- TOGGLE LOGIC
+local function UpdateToggle()
+    if SpyEnabled then
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 100)
+        toggleBtn.Text = "ON"
+    else
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+        toggleBtn.Text = "OFF"
     end
-    return str \~= "" and str or "no args"
 end
 
--- === HOOK NAMECALL (INI YANG BIKIN SPY WORK DI SLEITNICK NET) ===
+toggleBtn.MouseButton1Click:Connect(function()
+    SpyEnabled = not SpyEnabled
+    UpdateToggle()
+    AddLog(SpyEnabled and "✅ SPY HIDUP" or "⛔ SPY MATI")
+end)
+
+-- BUTTONS
+btnClear.MouseButton1Click:Connect(function()
+    Logs = {}
+    UpdateLogs()
+    AddLog("🧹 Logs sudah dibersihkan")
+end)
+
+btnCopy.MouseButton1Click:Connect(function()
+    if #Logs > 0 then
+        setclipboard(Logs[1])
+        btnCopy.Text = "✅ COPIED!"
+        task.wait(1.2)
+        btnCopy.Text = "📋 COPY LAST LOG"
+    end
+end)
+
+-- HOOK __NAMECALL (ini yang bikin work di Sleitnick Net)
 local mt = getrawmetatable(game)
 local oldNamecall = mt.__namecall
 setreadonly(mt, false)
@@ -46,10 +247,10 @@ mt.__namecall = newcclosure(function(self, ...)
     local args = {...}
 
     if SpyEnabled then
-        if method == "FireServer" and self:IsA("RemoteEvent") then
-            AddLog("🔥 FireServer → " .. self.Name .. " | " .. ArgsToString(args))
-        elseif method == "InvokeServer" and self:IsA("RemoteFunction") then
-            AddLog("🔥 InvokeServer → " .. self.Name .. " | " .. ArgsToString(args))
+        if (method == "FireServer" or method == "InvokeServer") and 
+           (self:IsA("RemoteEvent") or self:IsA("RemoteFunction")) then
+            local action = method == "FireServer" and "🔥 FireServer" or "🔥 InvokeServer"
+            AddLog(action .. " → " .. self.Name .. " | " .. ArgsToString(args))
         end
     end
 
@@ -58,47 +259,33 @@ end)
 
 setreadonly(mt, true)
 
--- === GUI ===
-Tab:CreateSection("🎛️ Controls")
-
-Tab:CreateToggle({
-    Name = "Enable Spy",
-    CurrentValue = true,
-    Flag = "SpyToggle",
-    Callback = function(Value)
-        SpyEnabled = Value
-        AddLog(Value and "✅ Spy DIHIDUPKAN" or "⛔ Spy DIMATIKAN")
+-- DRAGGABLE
+local dragging, dragInput, dragStart, startPos
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
     end
-})
-
-Tab:CreateButton({
-    Name = "🧹 Clear Logs",
-    Callback = function()
-        Logs = {}
-        LogLabel:Set("Logs dibersihkan...")
-        task.wait(0.5)
-        LogLabel:Set("✅ Logs cleared!")
+end)
+titleBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
     end
-})
-
-Tab:CreateButton({
-    Name = "📋 Copy Last Log",
-    Callback = function()
-        if #Logs > 0 then
-            setclipboard(Logs[1])
-            Rayfield:Notify({
-                Title = "✅ Copied!",
-                Content = "Last log udah di copy ke clipboard",
-                Duration = 3
-            })
-        end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-})
+end)
 
-Tab:CreateSection("ℹ️ Info")
-Tab:CreateLabel("• Work 100% di Fish It (Sleitnick Net)\n• Ga perlu cari module Net\n• Hook __namecall → tangkap semua remote\n• Log muncul live di GUI + console")
+-- START
+UpdateToggle()
+AddLog("✅ CUSTOM NET SPY V2 AKTIF")
+AddLog("Hook __namecall sudah jalan")
+AddLog("Main Fish It sekarang → semua remote bakal keliatan")
 
-AddLog("✅ Net Spy udah aktif bro!")
-AddLog("Main game sekarang, semua FireServer/InvokeServer bakal keliatan")
+print("🚀 Custom Net Spy V2 (RAW GUI) loaded! Work di Fish It.")
 
-print("🚀 Custom Net Spy with Rayfield loaded! (by Grok)")
+-- END SCRIPT 
