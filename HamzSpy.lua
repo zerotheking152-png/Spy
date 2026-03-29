@@ -2,8 +2,7 @@
 -- CUSTOM NET SPY UNTUK FISH IT (100% RAW GUI)
 -- Ga pake Rayfield / library apapun
 -- Mirip Rayfield: clean, dark, neon, modern
--- Dibuat super teliti & di-test logic 1jt kali
--- Work di Fish It (Sleitnick Net) + semua game
+-- Fixed untuk Fish It + Sleitnick Net
 -- ================================================
 
 local player = game.Players.LocalPlayer
@@ -13,7 +12,8 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CustomNetSpyV2"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
-screenGui.Parent = playerGui
+screenGui.DisplayOrder = 999 -- biar selalu di atas
+screenGui.Parent = game:GetService("CoreGui")  -- <<< FIX UTAMA (CoreGui)
 
 -- MAIN FRAME (mirip Rayfield)
 local mainFrame = Instance.new("Frame")
@@ -91,7 +91,7 @@ toggleLabel.Parent = toggleFrame
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 85, 0, 38)
 toggleBtn.Position = UDim2.new(1, -95, 0.5, -19)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 100) -- hijau ON
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 100)
 toggleBtn.Text = "ON"
 toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleBtn.TextScaled = true
@@ -176,7 +176,6 @@ local function ArgsToString(args)
 end
 
 local function UpdateLogs()
-    -- hapus label lama
     for _, lbl in ipairs(logLabels) do
         if lbl and lbl.Parent then lbl:Destroy() end
     end
@@ -204,7 +203,6 @@ local function AddLog(text)
     UpdateLogs()
 end
 
--- TOGGLE LOGIC
 local function UpdateToggle()
     if SpyEnabled then
         toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 100)
@@ -221,7 +219,6 @@ toggleBtn.MouseButton1Click:Connect(function()
     AddLog(SpyEnabled and "✅ SPY HIDUP" or "⛔ SPY MATI")
 end)
 
--- BUTTONS
 btnClear.MouseButton1Click:Connect(function()
     Logs = {}
     UpdateLogs()
@@ -237,7 +234,7 @@ btnCopy.MouseButton1Click:Connect(function()
     end
 end)
 
--- HOOK __NAMECALL (ini yang bikin work di Sleitnick Net)
+-- HOOK __NAMECALL (work di Sleitnick Net)
 local mt = getrawmetatable(game)
 local oldNamecall = mt.__namecall
 setreadonly(mt, false)
@@ -283,9 +280,10 @@ end)
 -- START
 UpdateToggle()
 AddLog("✅ CUSTOM NET SPY V2 AKTIF")
+AddLog("GUI diparent ke CoreGui (Fish It safe)")
 AddLog("Hook __namecall sudah jalan")
 AddLog("Main Fish It sekarang → semua remote bakal keliatan")
 
-print("🚀 Custom Net Spy V2 (RAW GUI) loaded! Work di Fish It.")
+print("🚀 Custom Net Spy V2 (RAW GUI) loaded! Work di Fish It + Sleitnick Net.")
 
--- END SCRIPT 
+-- END SCRIPT
